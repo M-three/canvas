@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <style type="text/css">
+        body{background-color: #0c1328;position: absolute;left: 0;top: 0;right: 0;bottom: 0;}
+        canvas{
+            position: fixed;
+            top:0;
+            left:0;
+        }
+    </style>
+</head>
+<body>
+<canvas id="myCanvas2" width="1738" height="864">您的浏览器不支持Canvas。</canvas>
+<canvas id="myCanvas" width="1738" height="864">您的浏览器不支持Canvas。</canvas>
+
+<script >
+
+      var c=80; //扩散的变量
+
+        var canvas = {},
+                image = {};
+        var particles = [];
+        //获取canvas元素
+        canvas.obj = document.getElementById('myCanvas');
+
+        if(canvas.obj.getContext) {
+
+            //获取渲染上下文
+            canvas.ctx = canvas.obj.getContext('2d');
+
+            //设置画布大小为屏幕宽高
+            canvas.w = canvas.obj.width = document.body.clientWidth;
+            canvas.h = canvas.obj.height = document.body.clientHeight;
+
+            //新建一个image对象
+            var img = new Image();
+
+            //图像加载完后
+            img.onload = function() {
+                //把图像信息保存在image里面
+                image.obj = img;
+                image.w = img.width;
+                image.h = img.height;
+                image.x = parseInt(canvas.w/2 - image.w/2);
+                image.y = 200;
+
+                //把图像绘制到画布坐标为(100,100)的地方
+                canvas.ctx.drawImage(image.obj,image.x,image.y,image.w,image.h);
+
+                image.imageData = canvas.ctx.getImageData(image.x,image.y,image.w,image.h);
+//                diffusion()
+                //计算出符合要求的像素
+//                ren();
+//                draw();
+                calculate();
+                spray()
+            };
+
+
+
+
+            //设置image的source
+            img.src = 'isux.png';
+        }
+      function diffusion() {
+          //计算出符合要求的像素
+          calculate();
+
+          //计算后绘到画布上
+
+          draw();
+          if(c>0){
+              c=c-10;
+              requestAnimationFrame(diffusion)
+          }
+      }
+
+        //计算并保存坐标
+        function calculate() {
+            particles = []
+            var len = image.imageData.length;
+            //只保存100行，100列的像素值
+            var cols = 300,
+                    rows = 300;
+            //设成150行，100列后每个单元的宽高
+            var s_width = parseInt(image.w/cols),
+                    s_height = parseInt(image.h/rows);
+            var pos = 0; //数组中的位置
+            var par_x, par_y;  //粒子的x,y坐标
+            var data = image.imageData.data;  //像素值数组
+            for(var i = 0; i < cols; i++) {
+                for(var j = 0; j < rows; j++) {
+                    //计算(i,j)在数组中的R的坐标值
+                    pos = (j*s_height*image.w + i*s_width)*4;
+                    //判断像素透明度值是否符合要求
+                    if(data[pos+3] > 0){
+                        var particle = {
+                            //x,y值都随机一下
+                            x: i*s_width + (Math.random() - 0.5)*c,
+                            y: j*s_height + (Math.random() - 0.5)*c,
+                            t:  0,
+                            d:(Math.random() + 0.5)*c
+                        };
+                        // 根据图像不同的色值来设定粒子色值
+                        if(data[pos+1] < 175 && data[pos+2] < 10) {
+                            particle.fillStyle = '#ffa900';
+                        } else if(data[pos+1] < 75 && data[pos+1] > 50) {
+                            particle.fillStyle = '#ff4085';
+                        } else if(data[pos+1] < 220 && data[pos+1] > 190) {
+                            particle.fillStyle = '#00cfff';
+                        } else if(data[pos+1] < 195 && data[pos+1] > 175) {
+                            particle.fillStyle = '#9abc1c';
+                        }
+                        //符合要求的粒子保存到数组里
+                        particles.push(particle);
+                    }
+                }
+            }
+        }
+      //计算并保存坐标
+      function ren() {
+          particles = []
+          var len = image.imageData.length;
+          //只保存100行，100列的像素值
+          var cols = 201,
+                  rows = 210;
+          //设成150行，100列后每个单元的宽高
+          var s_width = image.w/cols,
+                  s_height = image.h/rows;
+          var pos = 0; //数组中的位置
+          var par_x, par_y;  //粒子的x,y坐标
+          var data = image.imageData.data;  //像素值数组
+          for(var i = 0; i < cols; i++) {
+              for(var j = 0; j < rows; j++) {
+                  //计算(i,j)在数组中的R的坐标值
+                  pos = (j*s_height*image.w + i*s_width)*4;
+                  //判断像素透明度值是否符合要求
+                  if(data[pos+3] > 0){
+                      var particle = {
+                          //x,y值都随机一下
+                          x: -100+i*s_width ,
+                          y: -500+j*s_height,
+                          t:  0,
+                          d:j+i
+                      };
+                      // 根据图像不同的色值来设定粒子色值
+                      var _style='#';
+                      _style+=data[pos].toString(16);
+                      _style+=data[pos+1].toString(16);
+                      _style+=data[pos+1].toString(16);
+                      particle.fillStyle = _style;
+                      //符合要求的粒子保存到数组里
+                      particles.push(particle);
+                  }
+              }
+          }
+      }
+        //绘图案
+        function draw() {
+            //清空画布
+            canvas.ctx.clearRect(0,0,canvas.w,canvas.h);
+            var len = particles.length;
+            var curr_particle = null;
+
+            for(var i = 0; i < len; i++) {
+                curr_particle = particles[i];
+
+                //设置填充颜色
+                canvas.ctx.fillStyle = curr_particle.fillStyle;
+                //绘粒子到画布上
+                canvas.ctx.fillRect(curr_particle.x,curr_particle.y,1,1);
+            }
+        }
+
+      //Tween 缓动算法
+      //t  动画执行到当前帧所经过的时间
+      //b 起始点
+      //c 位移值
+      //d 持续时间
+    function Tween(t,b,c,d) {
+        t/=d/2;
+        if(t<1)return c/2*Math.pow( 2,10*(t-1))+b;
+        t--;
+        return c/2*(-Math.pow(2,-10*t)+2)+b;
+    }
+    //射出
+    function spray() {
+
+        canvas.ctx.clearRect(0,0,canvas.w,canvas.h);//先清除画面
+        var len = particles.length;
+        var curr_particle = null;
+        var x,y;
+        for(var i = 0; i < len; i++) {
+            curr_particle = particles[i];
+            //设置填充颜色
+            canvas.ctx.fillStyle = curr_particle.fillStyle;
+            //绘粒子到画布上
+            x =Tween(curr_particle.t,300,curr_particle.x,curr_particle.d);
+            y =Tween(curr_particle.t,200,curr_particle.y,curr_particle.d);
+            curr_particle.t++;
+            canvas.ctx.fillRect(x,y,1,1);
+        }
+
+        var asd = requestAnimationFrame(spray);
+        if(particles[len-1].d<particles[len-1].t){
+            cancelAnimationFrame(asd);
+            ball()
+        }
+
+    }
+var ballList=[];
+var eee;
+      var hhh=canvas.h;
+      var ccc2=document.getElementById('myCanvas2').getContext('2d')
+      var dasx = new Image();
+        dasx.src='img.png';
+      //图像加载完后
+      dasx.onload = function() {
+          canvas.obj.onmousemove =function (e) {
+              eee= e;
+              ballList.push({
+                  x: e.offsetX ,
+                  y: e.offsetY,
+                  fillStyle: '#'+Math.floor(Math.random()*256).toString(16)+Math.floor(Math.random()*256).toString(16)+Math.floor(Math.random()*256).toString(16)
+              })
+
+          };
+      };
+
+
+    function ball() {
+
+        //清空画布
+        canvas.ctx.clearRect(0,0,canvas.w,hhh);
+        ccc2.clearRect(0,0,canvas.w,canvas.w);
+        ccc2.drawImage(dasx,eee.offsetX-10,eee.offsetY-20,dasx.width,dasx.height);
+
+        var len = ballList.length;
+        var curr_particle = null;
+
+        for(var i = 0; i < len; i++) {
+            curr_particle = ballList[i];
+
+            //设置填充颜色
+            canvas.ctx.fillStyle = curr_particle.fillStyle;
+            //绘粒子到画布上
+            canvas.ctx.fillRect(curr_particle.x,curr_particle.y,10,10);
+            if(curr_particle.y<hhh){
+                curr_particle.y+=5
+            }
+
+        }
+        hhh--;
+        requestAnimationFrame(ball)
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+
+<html>
+
+<body>
+
+<canvas id="Tcs" width="400" height="400" style="background:Black"></canvas>
+
+<script>
+	var Tcs = document.getElementById('Tcs').getContext("2d");//画布对象（2d环境）
+	var snakeArr = [33,32];//存放蛇身的数组 一个代表一段
+	var food = 35;//食物位置 默认先吃一次 相当于初始化
+	var move = 1;//移动的位置变量
+	var place;//临时存放位置信息
+
+	function draw(_place, colour) {//绘画方法   place 确定起点位置  colour 颜色
+		Tcs.fillStyle = colour;
+		Tcs.fillRect(_place% 20 * 20,~~(_place / 20) * 20, 18, 18);//~~按位取反 再取反 来回避小数导致的位置不精确问题
+
+	}
+	function animation() { //动画函数
+			snakeArr.unshift(place = snakeArr[0] + move);
+		    if(snakeArr.indexOf(place, 1)>0){
+				return alert("吃了自己");
+			}
+			if(place < 0 || place>399){
+				return alert("撞了上下墙");
+			}
+			if( move == -1 && place % 20 == 19 || move == 1 && place % 20 == 0 ){
+				return alert("撞了左右墙");
+			}
+			draw(place, "Yellow");//画蛇
+			if(place ==food){
+//				while (snakeArr.indexOf(food, 1)!=-1){
+//					food =~~(Math.random() * 400)
+//				}
+				while(snakeArr.indexOf(food=~~(Math.random()*400))>=0);
+				draw(food, "blue");
+			}else{
+				draw(snakeArr.pop(), "Black");
+			}
+		setTimeout(arguments.callee, 130);//arguments.callee 比回调本身好的多
+	}
+	animation();//执行
+	//绑定操作事件
+	//	keycode 37 = Left ←  -1
+	//	keycode 38 = Up ↑   -20
+	//	keycode 39 = Right →  1
+	//	keycode 40 = Down ↓   20
+	document.onkeydown = function (e) {
+		var a = [-1, -20, 1, 20][(e || event).keyCode - 37];
+		if(a == move ||a == -move){
+			return
+		}else {
+			move = a;
+		}
+
+	};
+</script>
+
+</body>
+
+</html>

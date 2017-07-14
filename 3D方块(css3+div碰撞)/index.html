@@ -1,0 +1,124 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>实验</title>
+<link href="index.css" rel="stylesheet" type="text/css">
+<link href="comm.css" rel="stylesheet" type="text/css">
+</head>
+
+<body style="overflow:hidden">
+<div class="box">
+  <div class="box_fang1">
+  <div class="box_fang">
+    <div class="num num1">1</div>
+    <div class="num num2">2</div>
+    <div class="num num3">3</div>
+    <div class="num num4">4</div>
+    <div class="num num5">5</div>
+    <div class="num num6">6</div>
+  </div>
+  </div>
+  <div class="box_fang22">
+  <div class="box_fang2">
+    <div class="num num1">1</div>
+    <div class="num num2">2</div>
+    <div class="num num3">3</div>
+    <div class="num num4">4</div>
+    <div class="num num5">5</div>
+    <div class="num num6">6</div>
+  </div>
+ </div> 
+</div>
+</body>
+<script  src="jquery-2.1.4.min.js"></script>
+<script>
+var wheight = $(document).height();
+var wwidth = $(document).width();
+var ftop = parseInt($(".box_fang").css("top"));
+var fleft = parseInt($(".box_fang").css("left"));
+var ftop2 = parseInt($(".box_fang2").css("top"));
+var fleft2 = parseInt($(".box_fang2").css("left"));
+var v = 5;
+var g = 5;
+var v2 = 4;
+var g2 = 3;
+//初始化
+$(function() {
+    setInterval("dong()", 10)
+    $(".box_fang22,.box_fang1").click(function() {
+        $(this).remove();
+    })
+})
+//动作
+function dong() {
+    fan();
+    ftop += g;
+    fleft += v;
+    ftop2 += g2;
+    fleft2 += v2;
+    $(".box_fang").css({
+        top: ftop,
+        left: fleft
+    });
+    $(".box_fang2").css({
+        top: ftop2,
+        left: fleft2
+    });
+    pen()
+}
+//限制移动区间
+function fan() {
+    if (ftop > wheight - 200) {
+        g = -5;
+    }
+    if (ftop < 100) {
+        g = 5;
+    }
+    if (fleft > wwidth - 200) {
+        v = -5;
+    }
+    if (fleft < 100) {
+        v = 5;
+    }
+    if (ftop2 > wheight - 200) {
+        g2 = -3;
+    }
+    if (ftop2 < 100) {
+        g2 = 3;
+    }
+    if (fleft2 > wwidth - 200) {
+        v2 = -4;
+    }
+    if (fleft2 < 100) {
+        v2 = 4;
+    }
+}
+//碰撞变换
+function pen() {
+    var ftop1 = parseInt($(".box_fang").css("top"));
+    var fleft1 = parseInt($(".box_fang").css("left"));
+    var ftop12 = parseInt($(".box_fang2").css("top"));
+    var fleft12 = parseInt($(".box_fang2").css("left"));
+    var ttop = 0;
+    var lleft = 0;
+    if (ftop1 - ftop12 > 0) {
+        ttop = ftop1 - ftop12
+    } else {
+        ttop = ftop12 - ftop1
+    }
+    if (fleft1 - fleft12 > 0) {
+        lleft = fleft1 - fleft12
+    } else {
+        lleft = fleft12 -fleft1
+    }
+	console.log(Math.pow(ttop,2) + Math.pow(lleft,2))
+    if (   (Math.pow(ttop,2) + Math.pow(lleft,2)     ) < 20000) {
+        g = -g;
+        g2 = -g2;
+        v = -v;
+        v2 = -v2;
+    }
+}
+</script>
+</html>
